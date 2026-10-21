@@ -1,8 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List
 
-class LimaResponse(BaseModel):
-    reply: str = Field(description="The primary response to the user's message.")
-    follow_up_suggestions: List[str] = Field(
-        description="2 to 3 concise, proactive follow-up questions or related suggestions for the user."
-    )
+class LimaVoiceResponse(BaseModel):
+    summary: str = Field(description="A thorough, professional summary of the voice note or query.")
+    action_items: List[str] = Field(description="Concrete, actionable next steps or tasks extracted from the voice note.")
