@@ -1,174 +1,140 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { Mic, Square, Loader2, Sparkles, FileText, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 export default function Home() {
+  const [darkMode, setDarkMode] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [note, setNote] = useState<any>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const [result, setResult] = useState<{
+    transcript?: string;
+    summary?: string;
+    action_items?: string[];
+  } | null>(null);
 
-  const startRecording = async () => {
-    audioChunksRef.current = [];
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].find((t) => MediaRecorder.isTypeSupported(t));
-      const mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType || 'audio/webm' });
-        await sendAudioToServer(audioBlob);
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (err) {
-      console.error('Error accessing microphone:', err);
-      alert('Microphone access is required to record voice notes.');
+  // Toggle dark mode class on html document root
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-      setIsRecording(false);
-    }
-  };
-
-  const sendAudioToServer = async (blob: Blob) => {
-    if (blob.size < 2000) {
-      alert('That recording was too short or silent. Speak for at least a second, then tap stop.');
-      return;
-    }
-    setLoading(true);
-    const ext = blob.type.includes('mp4') ? 'm4a' : blob.type.includes('ogg') ? 'ogg' : 'webm';
-    const formData = new FormData();
-    formData.append('file', blob, `voice-note.${ext}`);
-
-    try {
-      const res = await fetch('/api/process-audio', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setNote(data);
-      } else {
-        alert(data.error || 'Failed to process audio');
-      }
-    } catch (err) {
-      console.error('Network error:', err);
-      alert('Failed to connect to server.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [darkMode]);
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-between p-6 md:p-24 font-sans">
-      <div className="w-full max-w-2xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-400 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            Meet Lima • AI Voice Assistant
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">Lima Voice Notes</h1>
-          <p className="text-zinc-400 text-sm">Speak your thoughts and watch Lima structure them into notes and action items.</p>
+    <div className={`min-h-screen transition-colors duration-200 ${darkMode ? 'dark bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      
+      {/* Top Navigation Bar */}
+      <header className="w-full max-w-5xl mx-auto py-4 px-6 flex justify-between items-center border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center space-x-3">
+          <h1 className="text-2xl font-extrabold tracking-tight">Lima</h1>
+          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+            Voice AI
+          </span>
         </div>
 
-        {/* Recorder Box */}
-        <div className="bg-zinc-900/50 border border-zinc-800/80 rounded-2xl p-8 flex flex-col items-center justify-center shadow-xl backdrop-blur-md">
-          {!isRecording && !loading && (
-            <button
-              onClick={startRecording}
-              className="group flex flex-col items-center gap-4 focus:outline-none"
-            >
-              <div className="w-20 h-20 rounded-full bg-indigo-600 hover:bg-indigo-500 flex items-center justify-center transition-all duration-300 shadow-lg shadow-indigo-600/30 group-hover:scale-105">
-                <Mic className="w-8 h-8 text-white" />
-              </div>
-              <span className="text-sm font-medium text-zinc-300">Tap to talk to Lima</span>
-            </button>
-          )}
+        <div className="flex items-center space-x-4">
+          {/* Theme Toggle Button */}
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            {darkMode ? '☀️ Light' : '🌙 Dark'}
+          </button>
 
-          {isRecording && (
-            <button
-              onClick={stopRecording}
-              className="group flex flex-col items-center gap-4 focus:outline-none animate-pulse"
-            >
-              <div className="w-20 h-20 rounded-full bg-rose-600 hover:bg-rose-500 flex items-center justify-center transition-all duration-300 shadow-lg shadow-rose-600/30">
-                <Square className="w-7 h-7 text-white fill-current" />
-              </div>
-              <span className="text-sm font-medium text-rose-400">Lima is listening... Tap to finish</span>
-            </button>
-          )}
+          {/* Lima Instructions Trigger */}
+          <button
+            onClick={() => setShowInstructions(true)}
+            className="text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          >
+            Instructions
+          </button>
 
-          {loading && (
-            <div className="flex flex-col items-center gap-4 py-4">
-              <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
-              <span className="text-sm text-zinc-400">Lima is transcribing and organizing your note...</span>
-            </div>
-          )}
+          {/* GitHub Repo Link */}
+          <a
+            href="https://github.com/Valentina14142000/Lima"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+            <span>GitHub</span>
+          </a>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="max-w-3xl mx-auto px-6 py-12 text-center">
+        <h2 className="text-3xl font-bold mb-2">Meet Lima • AI Voice Assistant</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
+          Speak your thoughts and watch Lima structure them into actionable notes and key results.
+        </p>
+
+        {/* Voice Note Trigger */}
+        <div className="my-8 flex justify-center">
+          <button
+            onClick={() => setIsRecording(!isRecording)}
+            className={`w-24 h-24 rounded-full flex items-center justify-center font-bold text-white transition-transform active:scale-95 shadow-xl ${
+              isRecording ? 'bg-red-500 animate-pulse' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            {isRecording ? 'Recording...' : 'Tap to talk'}
+          </button>
         </div>
 
-        {/* Results Section */}
-        {note && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-6 shadow-xl animate-fade-in">
-            <div className="border-b border-zinc-800 pb-4">
-              <h2 className="text-xl font-semibold text-indigo-400">{note.result.title}</h2>
+        {/* Results Container */}
+        {result && (
+          <div className="mt-8 text-left p-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-4">
+            <div>
+              <h3 className="text-xs uppercase font-bold text-gray-400 mb-1">Summary</h3>
+              <p className="text-sm">{result.summary}</p>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="text-xs uppercase tracking-wider text-zinc-500 font-semibold flex items-center gap-1.5">
-                <FileText className="w-4 h-4" /> Summary
-              </h3>
-              <p className="text-sm text-zinc-300 leading-relaxed bg-zinc-950/50 p-4 rounded-xl border border-zinc-800/50">
-                {note.result.summary}
-              </p>
-            </div>
+            {result.action_items && result.action_items.length > 0 && (
+              <div>
+                <h3 className="text-xs uppercase font-bold text-gray-400 mb-1">Action Items</h3>
+                <ul className="list-disc list-inside text-sm space-y-1">
+                  {result.action_items.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            <div className="space-y-3">
-              <h3 className="text-xs uppercase tracking-wider text-zinc-500 font-semibold flex items-center gap-1.5">
-                <CheckCircle className="w-4 h-4" /> Action Items
-              </h3>
-              <ul className="space-y-2">
-                {note.result.actionItems?.map((item: string, idx: number) => (
-                  <li key={idx} className="text-sm text-zinc-300 bg-zinc-950/50 p-3 rounded-xl border border-zinc-800/50 flex items-start gap-3">
-                    <span className="text-indigo-400 font-mono text-xs mt-0.5">0{idx + 1}</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div className="pt-2">
-              <details className="text-xs text-zinc-500 cursor-pointer">
-                <summary className="hover:text-zinc-400 transition-colors">View raw transcript</summary>
-                <p className="mt-2 p-3 bg-zinc-950 rounded-lg text-zinc-400 font-mono text-xs leading-relaxed border border-zinc-800">
-                  {note.transcript}
-                </p>
+            {result.transcript && (
+              <details className="text-xs text-gray-500 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <summary className="cursor-pointer font-medium hover:text-gray-700 dark:hover:text-gray-300">
+                  View raw transcript
+                </summary>
+                <p className="mt-2 italic bg-gray-50 dark:bg-gray-800 p-2 rounded">{result.transcript}</p>
               </details>
-            </div>
+            )}
           </div>
         )}
+      </main>
 
-      </div>
-      
-      <footer className="mt-12 text-xs text-zinc-600">
-        Lima AI • Powered by Groq & Whisper
-      </footer>
-    </main>
+      {/* Lima Instructions Modal */}
+      {showInstructions && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-xl p-6 max-w-md w-full shadow-2xl border border-gray-200 dark:border-gray-800">
+            <h3 className="text-lg font-bold mb-3">How to use Lima</h3>
+            <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-300 space-y-2 mb-6">
+              <li>Tap the microphone button to start recording a voice note.</li>
+              <li>Speak clearly about your project, tasks, or ideas.</li>
+              <li>Lima transcribes your speech via Groq Whisper and automatically extracts a summary and actionable tasks.</li>
+            </ul>
+            <button
+              onClick={() => setShowInstructions(false)}
+              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
