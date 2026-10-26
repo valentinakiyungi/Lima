@@ -24,7 +24,6 @@ export default function Home() {
     }
   }, [darkMode]);
 
-  // Start Voice Recording
   const startRecording = async () => {
     audioChunksRef.current = [];
     try {
@@ -51,17 +50,14 @@ export default function Home() {
     }
   };
 
-  // Stop Voice Recording
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
-      // Stop all audio tracks
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
     setIsRecording(false);
   };
 
-  // Toggle Recording state
   const handleRecordClick = () => {
     if (isRecording) {
       stopRecording();
@@ -70,7 +66,6 @@ export default function Home() {
     }
   };
 
-  // Send Recorded Audio to FastAPI Backend
   const sendAudioToBackend = async (audioBlob: Blob) => {
     setLoading(true);
     const formData = new FormData();
@@ -102,26 +97,24 @@ export default function Home() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 flex flex-col justify-center items-center py-12 px-6 ${darkMode ? 'dark bg-gray-950 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`min-h-screen transition-colors duration-200 flex flex-col justify-center items-center py-12 px-6 ${darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'}`}>
       
       {/* Centered Wrapper */}
-      <div className="w-full max-w-2xl mx-auto space-y-8">
+      <div className="w-full max-w-2xl mx-auto space-y-6">
 
-        {/* Top Header Bar (Centered cleanly with margins) */}
-        <header className="w-full py-4 px-6 flex justify-between items-center rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+        {/* Top Header Bar */}
+        <header className="w-full py-4 px-6 flex justify-between items-center rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
           <div className="flex items-center space-x-3">
-            <h1 className="text-xl font-black tracking-tight text-gray-900 dark:text-white">Lima</h1>
+            <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Lima</h1>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-200 border border-blue-300 dark:border-blue-800">
               Voice AI
             </span>
           </div>
 
-          {/* Clean Icon Controls */}
           <div className="flex items-center space-x-3">
-            {/* Dark / Light Mode Icon Button */}
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
               title="Toggle Theme"
               aria-label="Toggle Theme"
             >
@@ -130,16 +123,15 @@ export default function Home() {
                   <path d="M12 4.5a7.5 7.5 0 100 15 7.5 7.5 0 000-15zM12 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm0 18a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm10-8a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM4 12a1 1 0 01-1 1H2a1 1 0 110-2h1a1 1 0 011 1zm15.071-7.071a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM6.343 17.657a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zm12.728 12.728a1 1 0 01-1.414 0l-.707-.707a1 1 0 011.414-1.414l.707.707a1 1 0 010 1.414zM6.343 6.343a1 1 0 01-1.414 0l-.707-.707a1 1 0 011.414-1.414l.707.707a1 1 0 010 1.414z" />
                 </svg>
               ) : (
-                <svg className="w-5 h-5 fill-current text-gray-700" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 fill-current text-slate-700" viewBox="0 0 24 24">
                   <path d="M12.3 2a10 10 0 00-1.9 20 10 10 0 0010.5-11 8.3 8.3 0 01-8.6-9z" />
                 </svg>
               )}
             </button>
 
-            {/* Instructions Info Icon Button */}
             <button
               onClick={() => setShowInstructions(true)}
-              className="p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
               title="Instructions"
               aria-label="Instructions"
             >
@@ -150,12 +142,11 @@ export default function Home() {
               </svg>
             </button>
 
-            {/* GitHub Icon Button */}
             <a
               href="https://github.com/Valentina14142000/Lima"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
               title="GitHub Repository"
               aria-label="GitHub Repository"
             >
@@ -166,13 +157,13 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Main Content Card (Centered) */}
-        <main className="text-center p-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm space-y-6">
+        {/* Main Content Card */}
+        <main className="text-center p-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md space-y-6">
           <div>
-            <h2 className="text-3xl font-extrabold mb-2 text-gray-900 dark:text-white">
+            <h2 className="text-3xl font-extrabold mb-2 text-slate-900 dark:text-white">
               Meet Lima • AI Voice Assistant
             </h2>
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
               Speak your thoughts and watch Lima structure them into actionable notes and key results.
             </p>
           </div>
@@ -186,7 +177,7 @@ export default function Home() {
                 isRecording 
                   ? 'bg-red-600 ring-4 ring-red-300 dark:ring-red-900 animate-pulse' 
                   : loading 
-                  ? 'bg-gray-400 cursor-not-allowed'
+                  ? 'bg-slate-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
               }`}
             >
@@ -196,15 +187,15 @@ export default function Home() {
 
           {/* Action Items & Summary Output Container */}
           {result && (
-            <div className="text-left p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 space-y-4 text-gray-900 dark:text-gray-100">
+            <div className="text-left p-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4 text-slate-900 dark:text-slate-100">
               <div>
-                <h3 className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-1">Summary</h3>
+                <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 mb-1">Summary</h3>
                 <p className="text-sm font-medium leading-relaxed">{result.summary}</p>
               </div>
 
               {result.action_items && result.action_items.length > 0 && (
                 <div>
-                  <h3 className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400 mb-1">Action Items</h3>
+                  <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 mb-1">Action Items</h3>
                   <ul className="list-disc list-inside text-sm space-y-1 font-medium">
                     {result.action_items.map((item, idx) => (
                       <li key={idx}>{item}</li>
@@ -214,11 +205,11 @@ export default function Home() {
               )}
 
               {result.transcript && (
-                <details className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
-                  <summary className="cursor-pointer font-semibold hover:text-gray-800 dark:hover:text-gray-200">
+                <details className="text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <summary className="cursor-pointer font-semibold hover:text-slate-800 dark:hover:text-slate-200">
                     View raw transcript
                   </summary>
-                  <p className="mt-2 italic bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-3 rounded-lg border border-gray-200 dark:border-gray-700">{result.transcript}</p>
+                  <p className="mt-2 italic bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-3 rounded-lg border border-slate-200 dark:border-slate-700">{result.transcript}</p>
                 </details>
               )}
             </div>
@@ -229,9 +220,9 @@ export default function Home() {
       {/* Instructions Modal */}
       {showInstructions && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-gray-200 dark:border-gray-800">
+          <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800">
             <h3 className="text-xl font-bold mb-3">How to use Lima</h3>
-            <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 space-y-2.5 mb-6 leading-relaxed">
+            <ul className="list-disc list-inside text-sm text-slate-700 dark:text-slate-300 space-y-2.5 mb-6 leading-relaxed">
               <li>Tap the microphone button to start recording your voice note.</li>
               <li>Speak clearly about your project, tasks, or ideas, then tap stop.</li>
               <li>Lima transcribes your speech via Groq Whisper and automatically extracts a summary and actionable tasks.</li>
