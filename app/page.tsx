@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
@@ -75,7 +73,7 @@ export default function Home() {
     formData.append("user_id", "val_123");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/voice`, {
+      const response = await fetch("http://127.0.0.1:8000/chat/voice", {
         method: "POST",
         body: formData,
       });
