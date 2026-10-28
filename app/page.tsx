@@ -81,7 +81,8 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to process voice note on backend.");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Server returned status ${response.status}`);
       }
 
       const data = await response.json();
