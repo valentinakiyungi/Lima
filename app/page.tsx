@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://lima-bc.onrender.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://myalerts.onrender.com";
 
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
