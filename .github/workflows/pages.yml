@@ -22,6 +22,12 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      - name: Generate PNG icons from icon.svg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq librsvg2-bin
+          rsvg-convert -w 180 -h 180 app/icon.svg -o app/apple-icon.png
+          cp app/apple-icon.png app/icon.png
       - run: npm ci
       - run: npm run build
         env:
