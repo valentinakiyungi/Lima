@@ -27,7 +27,8 @@ const speak = (text: string, lang = 'en-US'): Promise<void> =>
     }
     const synth = window.speechSynthesis;
     // Only cancel speech that is really playing; cancel() right before speak() makes Chrome/Safari drop it.
-    if (synth.speaking || synth.pending) synth.cancel();
+    const wasBusy = synth.speaking || synth.pending;
+    if (wasBusy) synth.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
@@ -45,18 +46,17 @@ const speak = (text: string, lang = 'en-US'): Promise<void> =>
       resolve();
     };
     utterance.onend = done;
-    utterance.onerror = done;
-    setTimeout(() => synth.speak(currentUtterance as SpeechSynthesisUtterance), 120);
+    utterance.onerror = (e) => {
+      console.warn('Speech error:', e.error);
+      done();
+    };
+    const start = () => {
+      synth.resume(); // Chrome can leave the queue paused after a cancel
+      synth.speak(currentUtterance as SpeechSynthesisUtterance);
+    };
+    if (wasBusy) setTimeout(start, 120);
+    else start();
   });
-
-// Phones only allow speech that starts from a tap. Playing a silent word during the tap "unlocks"
-// speech, so Lima's answer (which arrives after a network call) can still be spoken afterwards.
-const unlockSpeech = () => {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  const u = new SpeechSynthesisUtterance(' ');
-  u.volume = 0;
-  window.speechSynthesis.speak(u);
-};
 
 const iconButton =
   "p-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors";
@@ -95,15 +95,19 @@ export default function Home() {
     setError(null);
     audioChunksRef.current = [];
     try {
-      // Ask for the microphone first (needs the tap), then greet, then start recording.
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      if (historyRef.current.length === 0) {
+      // Browsers only allow speech that starts inside the tap, so start the greeting right away,
+      // ask for the microphone while Lima talks, then begin recording when both are done.
+      const isFirstTurn = historyRef.current.length === 0;
+      let greetingDone: Promise<void> = Promise.resolve();
+      if (isFirstTurn) {
         setGreeting(true);
-        await speak(GREETING);
-        setGreeting(false);
+        greetingDone = speak(GREETING);
       } else {
         window.speechSynthesis?.cancel(); // stop Lima mid-answer when the user taps to talk again
       }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      await greetingDone;
+      setGreeting(false);
       const picked =
         typeof MediaRecorder !== 'undefined'
           ? AUDIO_TYPES.find((t) => MediaRecorder.isTypeSupported(t.mime))
@@ -148,7 +152,6 @@ export default function Home() {
   };
 
   const handleRecordClick = () => {
-    unlockSpeech();
     if (isRecording) {
       stopRecording();
     } else {
@@ -286,7 +289,7 @@ export default function Home() {
               Meet Lima • AI Voice Assistant
             </h2>
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Speak your thoughts and watch Lima structure them into actionable notes and key results.
+              Ask a question or share a thought. Lima answers out loud and turns what you say into a clear summary and action items.
             </p>
           </div>
 
@@ -406,7 +409,7 @@ export default function Home() {
             <ul className="list-disc list-inside text-sm text-slate-700 dark:text-slate-300 space-y-2.5 mb-6 leading-relaxed">
               <li>Tap the microphone button to start recording your voice note.</li>
               <li>Speak clearly about your project, tasks, or ideas, then tap stop.</li>
-              <li>Lima transcribes your speech via Groq Whisper and automatically extracts a summary and actionable tasks.</li>
+              <li>Lima listens, answers you out loud, and adds a short summary and action items.</li>
             </ul>
             <button
               onClick={() => setShowInstructions(false)}
