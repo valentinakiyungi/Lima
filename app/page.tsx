@@ -17,7 +17,7 @@ const GREETING = "Hello! I'm Lima. What can I help you with today?";
 
 // Speak a line with the browser's built-in voice. Always resolves (even if speech is unsupported
 // or never fires "end", e.g. on some mobile browsers) so recording is never blocked.
-const speak = (text: string): Promise<void> =>
+const speak = (text: string, lang = 'en-US'): Promise<void> =>
   new Promise((resolve) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       resolve();
@@ -26,7 +26,7 @@ const speak = (text: string): Promise<void> =>
     const synth = window.speechSynthesis;
     synth.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
+    utterance.lang = lang;
     const timer = setTimeout(() => resolve(), 7000);
     const done = () => {
       clearTimeout(timer);
@@ -51,10 +51,14 @@ export default function Home() {
     transcript?: string;
     summary?: string;
     action_items?: string[];
+    reply?: string;
+    follow_up?: string;
+    language?: string;
   } | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const historyRef = useRef<{ role: string; content: string }[]>([]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -71,9 +75,13 @@ export default function Home() {
     try {
       // Ask for the microphone first (needs the tap), then greet, then start recording.
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setGreeting(true);
-      await speak(GREETING);
-      setGreeting(false);
+      if (historyRef.current.length === 0) {
+        setGreeting(true);
+        await speak(GREETING);
+        setGreeting(false);
+      } else {
+        window.speechSynthesis?.cancel(); // stop Lima mid-answer when the user taps to talk again
+      }
       const picked =
         typeof MediaRecorder !== 'undefined'
           ? AUDIO_TYPES.find((t) => MediaRecorder.isTypeSupported(t.mime))
@@ -131,6 +139,8 @@ export default function Home() {
     const formData = new FormData();
     formData.append("file", audioBlob, `voice_note.${ext}`);
     formData.append("user_id", "val_123");
+    formData.append("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || "");
+    formData.append("history", JSON.stringify(historyRef.current.slice(-6)));
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 120000);
@@ -152,7 +162,17 @@ export default function Home() {
         transcript: data.transcript,
         summary: data.summary,
         action_items: data.action_items,
+        reply: data.reply,
+        follow_up: data.follow_up,
+        language: data.language,
       });
+      const spoken = [data.reply, data.follow_up].filter(Boolean).join(" ");
+      historyRef.current = [
+        ...historyRef.current,
+        { role: "user", content: data.transcript || "" },
+        { role: "assistant", content: spoken },
+      ].slice(-12);
+      if (spoken) void speak(spoken, data.language || "en-US");
     } catch (err) {
       console.error("Backend error:", err);
       const aborted = err instanceof DOMException && err.name === 'AbortError';
@@ -269,10 +289,22 @@ export default function Home() {
 
           {result && (
             <div className="text-left p-4 sm:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4 text-slate-900 dark:text-slate-100 break-words">
-              <div>
-                <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 mb-1">Summary</h3>
-                <p className="text-sm font-medium leading-relaxed">{result.summary}</p>
-              </div>
+              {result.reply && (
+                <div>
+                  <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 mb-1">Lima</h3>
+                  <p className="text-base font-semibold leading-relaxed">{result.reply}</p>
+                  {result.follow_up && (
+                    <p className="mt-2 text-sm font-medium text-blue-700 dark:text-blue-300">{result.follow_up}</p>
+                  )}
+                </div>
+              )}
+
+              {result.summary && (
+                <div>
+                  <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 mb-1">Summary</h3>
+                  <p className="text-sm font-medium leading-relaxed">{result.summary}</p>
+                </div>
+              )}
 
               {result.action_items && result.action_items.length > 0 && (
                 <div>

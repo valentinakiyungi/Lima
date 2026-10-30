@@ -30,23 +30,37 @@ def health():
 
 
 @app.post("/chat/text")
-def chat_text(user_id: str = Form("default_user"), message: str = Form(...)):
+def chat_text(
+    user_id: str = Form("default_user"),
+    message: str = Form(...),
+    timezone: str = Form(""),
+    history: str = Form(""),
+):
     try:
-        result = process_lima_input(text_query=message)
+        result = process_lima_input(
+            text_query=message, timezone=timezone or None, history=history
+        )
         return {"status": "success", "user_id": user_id, **result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/chat/voice")
-def chat_voice(file: UploadFile = File(...), user_id: str = Form("default_user")):
+def chat_voice(
+    file: UploadFile = File(...),
+    user_id: str = Form("default_user"),
+    timezone: str = Form(""),
+    history: str = Form(""),
+):
     suffix = os.path.splitext(file.filename or "")[1] or ".webm"
     tmp_path = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             shutil.copyfileobj(file.file, tmp)
             tmp_path = tmp.name
-        result = process_lima_input(audio_file_path=tmp_path)
+        result = process_lima_input(
+            audio_file_path=tmp_path, timezone=timezone or None, history=history
+        )
         return {"status": "success", "user_id": user_id, **result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
