@@ -5,6 +5,9 @@ from groq import Groq
 
 _client = None
 
+# Override with the LLM_MODEL environment variable on Render if Groq retires this model.
+LLM_MODEL = os.environ.get("LLM_MODEL", "openai/gpt-oss-120b")
+
 
 def get_client() -> Groq:
     """Create the Groq client on first use so the server can start (and report
@@ -40,7 +43,7 @@ def process_lima_input(text_query: str = None, audio_file_path: str = None) -> d
 
     # 2. Extract a summary and action items
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=LLM_MODEL,
         messages=[
             {
                 "role": "system",
