@@ -17,6 +17,8 @@ const GREETING = "Hello! I'm Lima. What can I help you with today?";
 
 // Speak a line with the browser's built-in voice. Always resolves (even if speech is unsupported
 // or never fires "end", e.g. on some mobile browsers) so recording is never blocked.
+let currentUtterance: SpeechSynthesisUtterance | null = null; // keep a reference so browsers don't drop it mid-sentence
+
 const speak = (text: string, lang = 'en-US'): Promise<void> =>
   new Promise((resolve) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -24,9 +26,19 @@ const speak = (text: string, lang = 'en-US'): Promise<void> =>
       return;
     }
     const synth = window.speechSynthesis;
-    synth.cancel();
+    // Only cancel speech that is really playing; cancel() right before speak() makes Chrome/Safari drop it.
+    if (synth.speaking || synth.pending) synth.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
+    const wanted = lang.toLowerCase().replace('_', '-');
+    const voices = synth.getVoices();
+    const voice =
+      voices.find((v) => v.lang.toLowerCase().replace('_', '-') === wanted) ||
+      voices.find((v) => v.lang.toLowerCase().startsWith(wanted.slice(0, 2)));
+    if (voice) utterance.voice = voice;
+    currentUtterance = utterance;
+
     const timer = setTimeout(() => resolve(), 7000);
     const done = () => {
       clearTimeout(timer);
@@ -34,7 +46,7 @@ const speak = (text: string, lang = 'en-US'): Promise<void> =>
     };
     utterance.onend = done;
     utterance.onerror = done;
-    synth.speak(utterance);
+    setTimeout(() => synth.speak(currentUtterance as SpeechSynthesisUtterance), 120);
   });
 
 // Phones only allow speech that starts from a tap. Playing a silent word during the tap "unlocks"
@@ -76,6 +88,7 @@ export default function Home() {
   // The free Render backend sleeps when idle; ping it on load so it is awake when the user records.
   useEffect(() => {
     fetch(`${API_BASE_URL}/health`).catch(() => {});
+    if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); // start loading voices early
   }, []);
 
   const startRecording = async () => {
