@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "https://lima-bc.onrender.com").replace(/\/$/, "");
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "https://lima-api.onrender.com").replace(/\/$/, "");
 const REPO_URL = "https://github.com/valentinakiyungi/Lima";
 
 // Safari records mp4, Chrome/Firefox record webm/ogg, so pick what the browser supports.
