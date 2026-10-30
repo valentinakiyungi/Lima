@@ -13,6 +13,30 @@ const AUDIO_TYPES: { mime: string; ext: string }[] = [
   { mime: "audio/ogg;codecs=opus", ext: "ogg" },
 ];
 
+const GREETING = "Hello! I'm Lima. What can I help you with today?";
+
+// Speak a line with the browser's built-in voice. Always resolves (even if speech is unsupported
+// or never fires "end", e.g. on some mobile browsers) so recording is never blocked.
+const speak = (text: string): Promise<void> =>
+  new Promise((resolve) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      resolve();
+      return;
+    }
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    const timer = setTimeout(() => resolve(), 7000);
+    const done = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    utterance.onend = done;
+    utterance.onerror = done;
+    synth.speak(utterance);
+  });
+
 const iconButton =
   "p-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors";
 
@@ -21,6 +45,7 @@ export default function Home() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [greeting, setGreeting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
     transcript?: string;
@@ -44,7 +69,11 @@ export default function Home() {
     setError(null);
     audioChunksRef.current = [];
     try {
+      // Ask for the microphone first (needs the tap), then greet, then start recording.
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setGreeting(true);
+      await speak(GREETING);
+      setGreeting(false);
       const picked =
         typeof MediaRecorder !== 'undefined'
           ? AUDIO_TYPES.find((t) => MediaRecorder.isTypeSupported(t.mime))
@@ -74,6 +103,7 @@ export default function Home() {
       mediaRecorder.start();
       setIsRecording(true);
     } catch (err) {
+      setGreeting(false);
       console.error("Microphone access error:", err);
       setError("Microphone access was denied or is not supported in this browser.");
     }
@@ -208,17 +238,22 @@ export default function Home() {
           <div className="flex flex-col items-center gap-3 py-2 sm:py-4">
             <button
               onClick={handleRecordClick}
-              disabled={loading}
+              disabled={loading || greeting}
               className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center font-bold text-white text-sm transition-all transform active:scale-95 shadow-xl ${
                 isRecording
                   ? 'bg-red-600 ring-4 ring-red-300 dark:ring-red-900 animate-pulse'
+                  : greeting
+                  ? 'bg-blue-500 ring-4 ring-blue-200 dark:ring-blue-900 animate-pulse cursor-not-allowed'
                   : loading
                   ? 'bg-slate-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
               }`}
             >
-              {loading ? 'Processing...' : isRecording ? 'Stop & Send' : 'Tap to talk'}
+              {greeting ? 'Lima is speaking...' : loading ? 'Processing...' : isRecording ? 'Stop & Send' : 'Tap to talk'}
             </button>
+            {greeting && (
+              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">{GREETING}</p>
+            )}
             {loading && (
               <p className="text-xs text-slate-600 dark:text-slate-400">
                 The first request can take up to a minute while the server wakes up.
