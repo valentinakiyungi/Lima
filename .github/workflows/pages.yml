@@ -32,7 +32,7 @@ jobs:
       - run: npm run build
         env:
           NEXT_PUBLIC_BASE_PATH: /Lima
-          NEXT_PUBLIC_API_URL: https://lima-api.onrender.com
+          NEXT_PUBLIC_API_URL: https://lima-api-yypp.onrender.com
       - run: touch out/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
