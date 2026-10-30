@@ -37,6 +37,15 @@ const speak = (text: string, lang = 'en-US'): Promise<void> =>
     synth.speak(utterance);
   });
 
+// Phones only allow speech that starts from a tap. Playing a silent word during the tap "unlocks"
+// speech, so Lima's answer (which arrives after a network call) can still be spoken afterwards.
+const unlockSpeech = () => {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(' ');
+  u.volume = 0;
+  window.speechSynthesis.speak(u);
+};
+
 const iconButton =
   "p-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors";
 
@@ -126,11 +135,18 @@ export default function Home() {
   };
 
   const handleRecordClick = () => {
+    unlockSpeech();
     if (isRecording) {
       stopRecording();
     } else {
       startRecording();
     }
+  };
+
+  const listen = () => {
+    if (!result?.reply) return;
+    const spoken = [result.reply, result.follow_up].filter(Boolean).join(" ");
+    void speak(spoken, result.language || "en-US");
   };
 
   const sendAudioToBackend = async (audioBlob: Blob, ext: string) => {
@@ -192,6 +208,12 @@ export default function Home() {
       <div className="w-full max-w-2xl mx-auto space-y-4 sm:space-y-6">
         <header className="w-full py-3 px-4 sm:py-4 sm:px-6 flex justify-between items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 text-white shadow-sm shrink-0" aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor" stroke="none" />
+                <path d="M5 11a7 7 0 0014 0M12 18v4M8 22h8" />
+              </svg>
+            </span>
             <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Lima</h1>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-200 border border-blue-300 dark:border-blue-800 whitespace-nowrap">
               Voice AI
@@ -256,6 +278,10 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col items-center gap-3 py-2 sm:py-4">
+            <div className="relative">
+            {isRecording && (
+              <span className="absolute inset-0 rounded-full bg-red-500/40 animate-ping pointer-events-none" aria-hidden="true" />
+            )}
             <button
               onClick={handleRecordClick}
               disabled={loading || greeting}
@@ -269,8 +295,28 @@ export default function Home() {
                   : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
               }`}
             >
-              {greeting ? 'Lima is speaking...' : loading ? 'Processing...' : isRecording ? 'Stop & Send' : 'Tap to talk'}
+              <span className="flex flex-col items-center gap-1.5">
+                {isRecording ? (
+                  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                ) : loading ? (
+                  <svg className="w-8 h-8 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.3" />
+                    <path d="M21 12a9 9 0 00-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor" stroke="none" />
+                    <path d="M5 11a7 7 0 0014 0M12 18v4M8 22h8" />
+                  </svg>
+                )}
+                <span className="text-xs sm:text-sm">
+                  {greeting ? 'Lima is speaking...' : loading ? 'Processing...' : isRecording ? 'Stop & Send' : 'Tap to talk'}
+                </span>
+              </span>
             </button>
+            </div>
             {greeting && (
               <p className="text-sm font-medium text-blue-700 dark:text-blue-300">{GREETING}</p>
             )}
@@ -296,6 +342,16 @@ export default function Home() {
                   {result.follow_up && (
                     <p className="mt-2 text-sm font-medium text-blue-700 dark:text-blue-300">{result.follow_up}</p>
                   )}
+                  <button
+                    onClick={listen}
+                    className="mt-3 inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M11 5L6 9H3v6h3l5 4V5z" fill="currentColor" />
+                      <path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13" />
+                    </svg>
+                    Listen
+                  </button>
                 </div>
               )}
 
