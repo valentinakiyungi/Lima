@@ -4,3 +4,4 @@ python-multipart
 groq
 pydantic
 tzdata
+httpx
