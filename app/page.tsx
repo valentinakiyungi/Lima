@@ -40,7 +40,7 @@ const speak = (text: string, lang = 'en-US'): Promise<void> =>
     if (voice) utterance.voice = voice;
     currentUtterance = utterance;
 
-    const timer = setTimeout(() => resolve(), 7000);
+    const timer = setTimeout(() => resolve(), 9000);
     const done = () => {
       clearTimeout(timer);
       resolve();
@@ -67,6 +67,7 @@ export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [greeting, setGreeting] = useState(false);
+  const [waitingMic, setWaitingMic] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
     transcript?: string;
@@ -95,19 +96,19 @@ export default function Home() {
     setError(null);
     audioChunksRef.current = [];
     try {
-      // Browsers only allow speech that starts inside the tap, so start the greeting right away,
-      // ask for the microphone while Lima talks, then begin recording when both are done.
-      const isFirstTurn = historyRef.current.length === 0;
-      let greetingDone: Promise<void> = Promise.resolve();
-      if (isFirstTurn) {
+      // Browsers only allow speech that starts inside the tap, so the greeting starts right away.
+      // The microphone is requested only AFTER it ends: phones lower or cut off speech while the
+      // microphone is opening, so the two must not overlap.
+      if (historyRef.current.length === 0) {
         setGreeting(true);
-        greetingDone = speak(GREETING);
+        await speak(GREETING);
+        setGreeting(false);
       } else {
         window.speechSynthesis?.cancel(); // stop Lima mid-answer when the user taps to talk again
       }
+      setWaitingMic(true);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      await greetingDone;
-      setGreeting(false);
+      setWaitingMic(false);
       const picked =
         typeof MediaRecorder !== 'undefined'
           ? AUDIO_TYPES.find((t) => MediaRecorder.isTypeSupported(t.mime))
@@ -138,6 +139,7 @@ export default function Home() {
       setIsRecording(true);
     } catch (err) {
       setGreeting(false);
+      setWaitingMic(false);
       console.error("Microphone access error:", err);
       setError("Microphone access was denied or is not supported in this browser.");
     }
@@ -300,7 +302,7 @@ export default function Home() {
             )}
             <button
               onClick={handleRecordClick}
-              disabled={loading || greeting}
+              disabled={loading || greeting || waitingMic}
               className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center font-bold text-white text-sm transition-all transform active:scale-95 shadow-xl ${
                 isRecording
                   ? 'bg-red-600 ring-4 ring-red-300 dark:ring-red-900 animate-pulse'
@@ -328,13 +330,18 @@ export default function Home() {
                   </svg>
                 )}
                 <span className="text-xs sm:text-sm">
-                  {greeting ? 'Lima is speaking...' : loading ? 'Processing...' : isRecording ? 'Stop & Send' : 'Tap to talk'}
+                  {greeting ? 'Lima is speaking...' : waitingMic ? 'Allow microphone' : loading ? 'Processing...' : isRecording ? 'Stop & Send' : 'Tap to talk'}
                 </span>
               </span>
             </button>
             </div>
             {greeting && (
               <p className="text-sm font-medium text-blue-700 dark:text-blue-300">{GREETING}</p>
+            )}
+            {waitingMic && (
+              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                Tap "Allow" when your phone asks to use the microphone.
+              </p>
             )}
             {loading && (
               <p className="text-xs text-slate-600 dark:text-slate-400">
