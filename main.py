@@ -89,6 +89,10 @@ VOICES = {
 }
 
 
+# Speaking speed, e.g. "+0%" is normal, "+15%" faster, "-10%" slower. Override with the TTS_RATE variable on Render.
+TTS_RATE = os.environ.get("TTS_RATE", "+15%")
+
+
 def pick_voice(lang: str) -> str:
     return VOICES.get((lang or "en").lower().replace("_", "-")[:2], VOICES["en"])
 
@@ -102,7 +106,7 @@ async def tts(text: str = Form(...), lang: str = Form("en-US")):
         import edge_tts  # imported here so the rest of the API still starts if it is missing
 
         audio = bytearray()
-        async for chunk in edge_tts.Communicate(text, pick_voice(lang)).stream():
+        async for chunk in edge_tts.Communicate(text, pick_voice(lang), rate=TTS_RATE).stream():
             if chunk["type"] == "audio":
                 audio.extend(chunk["data"])
         if not audio:
