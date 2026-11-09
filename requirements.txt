@@ -5,3 +5,4 @@ groq
 pydantic
 tzdata
 httpx
+edge-tts

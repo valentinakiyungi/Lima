@@ -2,7 +2,7 @@ import os
 import shutil
 import tempfile
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from lima_core import process_lima_input
@@ -67,3 +67,46 @@ def chat_voice(
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.remove(tmp_path)
+
+
+# ---- Text to speech: the same natural voice on every phone and computer ----
+VOICES = {
+    "en": "en-US-AriaNeural",
+    "id": "id-ID-GadisNeural",
+    "ru": "ru-RU-SvetlanaNeural",
+    "sw": "sw-KE-ZuriNeural",
+    "ar": "ar-SA-ZariyahNeural",
+    "es": "es-ES-ElviraNeural",
+    "fr": "fr-FR-DeniseNeural",
+    "de": "de-DE-KatjaNeural",
+    "pt": "pt-BR-FranciscaNeural",
+    "it": "it-IT-ElsaNeural",
+    "tr": "tr-TR-EmelNeural",
+    "hi": "hi-IN-SwaraNeural",
+    "zh": "zh-CN-XiaoxiaoNeural",
+    "ja": "ja-JP-NanamiNeural",
+    "ko": "ko-KR-SunHiNeural",
+}
+
+
+def pick_voice(lang: str) -> str:
+    return VOICES.get((lang or "en").lower().replace("_", "-")[:2], VOICES["en"])
+
+
+@app.post("/tts")
+async def tts(text: str = Form(...), lang: str = Form("en-US")):
+    text = text.strip()[:600]
+    if not text:
+        raise HTTPException(status_code=400, detail="No text to speak.")
+    try:
+        import edge_tts  # imported here so the rest of the API still starts if it is missing
+
+        audio = bytearray()
+        async for chunk in edge_tts.Communicate(text, pick_voice(lang)).stream():
+            if chunk["type"] == "audio":
+                audio.extend(chunk["data"])
+        if not audio:
+            raise RuntimeError("The voice service returned no audio.")
+        return Response(content=bytes(audio), media_type="audio/mpeg")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Voice generation failed: {e}")
