@@ -54,16 +54,27 @@ def chat_voice(
 ):
     suffix = os.path.splitext(file.filename or "")[1] or ".webm"
     tmp_path = None
+    size = 0
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             shutil.copyfileobj(file.file, tmp)
             tmp_path = tmp.name
+        size = os.path.getsize(tmp_path)
         result = process_lima_input(
             audio_file_path=tmp_path, timezone=timezone or None, history=history
         )
         return {"status": "success", "user_id": user_id, **result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e)
+        if "invalid_media_file" in msg:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "I couldn't read that recording. It may have been too short, so please speak for a few "
+                    f"seconds and try again. (received {size} bytes, type {file.content_type})"
+                ),
+            )
+        raise HTTPException(status_code=500, detail=msg)
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.remove(tmp_path)

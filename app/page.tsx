@@ -142,6 +142,7 @@ export default function Home() {
   const audioChunksRef = useRef<Blob[]>([]);
   const historyRef = useRef<{ role: string; content: string }[]>([]);
   const greetingUrlRef = useRef<string | null>(null);
+  const recordStartRef = useRef(0);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -193,14 +194,15 @@ export default function Home() {
         const type = mediaRecorder.mimeType || picked?.mime || 'audio/webm';
         const ext = AUDIO_TYPES.find((t) => type.startsWith(t.mime.split(';')[0]))?.ext || 'webm';
         const audioBlob = new Blob(audioChunksRef.current, { type });
-        if (audioBlob.size === 0) {
-          setError("No audio was captured. Please try again.");
+        if (Date.now() - recordStartRef.current < 1000 || audioBlob.size < 1500) {
+          setError('That recording was too short. Tap the button, wait until it says "Stop & Send", speak for a few seconds, then tap again.');
           return;
         }
         await sendAudioToBackend(audioBlob, ext);
       };
 
       mediaRecorder.start();
+      recordStartRef.current = Date.now();
       setIsRecording(true);
     } catch (err) {
       setGreeting(false);
@@ -403,6 +405,11 @@ export default function Home() {
             </div>
             {greeting && (
               <p className="text-sm font-medium text-blue-700 dark:text-blue-300">{GREETING}</p>
+            )}
+            {isRecording && (
+              <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                Listening... speak now, then tap Stop &amp; Send.
+              </p>
             )}
             {waitingMic && (
               <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
