@@ -119,7 +119,7 @@ const speakSmart = async (text: string, lang: string) => {
 };
 
 const iconButton =
-  "w-11 h-11 shrink-0 inline-flex items-center justify-center active:scale-95 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors";
+  "w-11 h-11 shrink-0 inline-flex items-center justify-center active:scale-95 rounded-xl border border-slate-400 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors";
 
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
@@ -318,7 +318,7 @@ export default function Home() {
   return (
     <div className={`safe-screen min-h-dvh transition-colors duration-200 flex flex-col items-center ${darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'}`}>
       <div className="w-full max-w-2xl mx-auto my-auto space-y-3 min-[400px]:space-y-4 sm:space-y-6">
-        <header className="w-full py-3 px-4 sm:py-4 sm:px-6 flex justify-between items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+        <header className="w-full py-3 px-4 sm:py-4 sm:px-6 flex justify-between items-center gap-3 rounded-2xl border border-slate-400 dark:border-slate-600 bg-white dark:bg-slate-900 shadow-sm">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 text-white shadow-sm shrink-0" aria-hidden="true">
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -327,7 +327,7 @@ export default function Home() {
               </svg>
             </span>
             <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Lima</h1>
-            <span className="hidden min-[420px]:inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-200 border border-blue-300 dark:border-blue-800 whitespace-nowrap">
+            <span className="hidden min-[420px]:inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-200 border border-blue-400 dark:border-blue-600 whitespace-nowrap">
               Voice AI
             </span>
           </div>
@@ -379,7 +379,7 @@ export default function Home() {
           </div>
         </header>
 
-        <main className="text-center p-4 min-[400px]:p-5 sm:p-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md space-y-5 sm:space-y-6">
+        <main className="text-center p-4 min-[400px]:p-5 sm:p-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-400 dark:border-slate-600 shadow-md space-y-5 sm:space-y-6">
           <div>
             <h2 className="text-2xl sm:text-3xl text-balance leading-tight font-extrabold mb-2 text-slate-900 dark:text-white">
               Meet Lima • AI Voice Assistant
@@ -450,13 +450,13 @@ export default function Home() {
           </div>
 
           {error && (
-            <div role="alert" className="text-left text-sm font-medium p-4 rounded-xl border border-red-300 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950/50 dark:text-red-200 break-words">
+            <div role="alert" className="text-left text-sm font-medium p-4 rounded-xl border border-red-400 bg-red-50 text-red-900 dark:border-red-700 dark:bg-red-950/50 dark:text-red-200 break-words">
               {error}
             </div>
           )}
 
           {result && (
-            <div className="text-left p-4 sm:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4 text-slate-900 dark:text-slate-100 break-words [overflow-wrap:anywhere]">
+            <div className="text-left p-4 sm:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-400 dark:border-slate-600 space-y-4 text-slate-900 dark:text-slate-100 break-words [overflow-wrap:anywhere]">
               {result.reply && (
                 <div>
                   <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 mb-1">Lima</h3>
@@ -466,7 +466,7 @@ export default function Home() {
                   )}
                   <button
                     onClick={listen}
-                    className="mt-3 inline-flex items-center gap-2 text-sm font-semibold min-h-11 px-4 py-2 rounded-full border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors"
+                    className="mt-3 inline-flex items-center gap-2 text-sm font-semibold min-h-11 px-4 py-2 rounded-full border border-blue-500 dark:border-blue-500 text-blue-800 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M11 5L6 9H3v6h3l5 4V5z" fill="currentColor" />
@@ -496,11 +496,11 @@ export default function Home() {
               )}
 
               {result.transcript && (
-                <details className="text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <details className="text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-400 dark:border-slate-600">
                   <summary className="cursor-pointer py-2 font-semibold hover:text-slate-800 dark:hover:text-slate-200">
                     View raw transcript
                   </summary>
-                  <p className="mt-2 italic bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-3 rounded-lg border border-slate-200 dark:border-slate-700">{result.transcript}</p>
+                  <p className="mt-2 italic bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-3 rounded-lg border border-slate-400 dark:border-slate-600">{result.transcript}</p>
                 </details>
               )}
             </div>
@@ -510,7 +510,7 @@ export default function Home() {
 
       {showInstructions && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4" onClick={() => setShowInstructions(false)}>
-          <div role="dialog" aria-modal="true" aria-label="How to use Lima" className="sheet-up bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] max-w-md w-full max-h-[90dvh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label="How to use Lima" className="sheet-up bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] max-w-md w-full max-h-[90dvh] overflow-y-auto shadow-2xl border border-slate-400 dark:border-slate-600" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-bold mb-3">How to use Lima</h3>
             <ul className="list-disc list-inside text-sm text-slate-700 dark:text-slate-300 space-y-2.5 mb-6 leading-relaxed">
               <li>Tap the microphone button to start recording your voice note.</li>
