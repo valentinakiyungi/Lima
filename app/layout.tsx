@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Lima — Voice AI Assistant",
   description: "Record a voice note and let Lima turn it into a summary and action items.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover", // lets the page use the full screen; safe-area padding keeps content clear of notches
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

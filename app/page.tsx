@@ -119,7 +119,7 @@ const speakSmart = async (text: string, lang: string) => {
 };
 
 const iconButton =
-  "p-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors";
+  "w-11 h-11 shrink-0 inline-flex items-center justify-center active:scale-95 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors";
 
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
@@ -146,7 +146,33 @@ export default function Home() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
+    let meta = document.querySelector('meta[name="theme-color"][data-lima]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      meta.setAttribute('data-lima', '');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', darkMode ? '#020617' : '#f1f5f9');
   }, [darkMode]);
+
+  // Start in the phone's light/dark mode unless the user chose one before.
+  useEffect(() => {
+    let initial = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    try {
+      const saved = localStorage.getItem('lima-theme');
+      if (saved) initial = saved === 'dark';
+    } catch {}
+    setDarkMode(initial);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    try {
+      localStorage.setItem('lima-theme', next ? 'dark' : 'light');
+    } catch {}
+  };
 
   // The free Render backend sleeps when idle; ping it on load so it is awake when the user records.
   useEffect(() => {
@@ -290,8 +316,8 @@ export default function Home() {
   };
 
   return (
-    <div className={`min-h-dvh transition-colors duration-200 flex flex-col justify-center items-center py-6 px-4 sm:py-12 sm:px-6 ${darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'}`}>
-      <div className="w-full max-w-2xl mx-auto space-y-4 sm:space-y-6">
+    <div className={`safe-screen min-h-dvh transition-colors duration-200 flex flex-col items-center ${darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'}`}>
+      <div className="w-full max-w-2xl mx-auto my-auto space-y-3 min-[400px]:space-y-4 sm:space-y-6">
         <header className="w-full py-3 px-4 sm:py-4 sm:px-6 flex justify-between items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 text-white shadow-sm shrink-0" aria-hidden="true">
@@ -301,14 +327,14 @@ export default function Home() {
               </svg>
             </span>
             <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Lima</h1>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-200 border border-blue-300 dark:border-blue-800 whitespace-nowrap">
+            <span className="hidden min-[420px]:inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-200 border border-blue-300 dark:border-blue-800 whitespace-nowrap">
               Voice AI
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 min-[400px]:gap-2 sm:gap-3 shrink-0">
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={toggleTheme}
               className={iconButton}
               title="Toggle Theme"
               aria-label="Toggle Theme"
@@ -353,12 +379,12 @@ export default function Home() {
           </div>
         </header>
 
-        <main className="text-center p-5 sm:p-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md space-y-5 sm:space-y-6">
+        <main className="text-center p-4 min-[400px]:p-5 sm:p-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md space-y-5 sm:space-y-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold mb-2 text-slate-900 dark:text-white">
+            <h2 className="text-2xl sm:text-3xl text-balance leading-tight font-extrabold mb-2 text-slate-900 dark:text-white">
               Meet Lima • AI Voice Assistant
             </h2>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <p className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300">
               Ask a question or share a thought. Lima answers out loud and turns what you say into a clear summary and action items.
             </p>
           </div>
@@ -371,7 +397,7 @@ export default function Home() {
             <button
               onClick={handleRecordClick}
               disabled={loading || greeting || waitingMic}
-              className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center font-bold text-white text-sm transition-all transform active:scale-95 shadow-xl ${
+              className={`record-btn w-32 h-32 sm:w-36 sm:h-36 rounded-full flex items-center justify-center font-bold text-white text-sm select-none transition-all transform active:scale-95 shadow-xl ${
                 isRecording
                   ? 'bg-red-600 ring-4 ring-red-300 dark:ring-red-900 animate-pulse'
                   : greeting
@@ -397,7 +423,7 @@ export default function Home() {
                     <path d="M5 11a7 7 0 0014 0M12 18v4M8 22h8" />
                   </svg>
                 )}
-                <span className="text-xs sm:text-sm">
+                <span className="text-xs sm:text-sm text-center px-2 leading-tight">
                   {greeting ? 'Lima is speaking...' : waitingMic ? 'Allow microphone' : loading ? 'Processing...' : isRecording ? 'Stop & Send' : 'Tap to talk'}
                 </span>
               </span>
@@ -430,7 +456,7 @@ export default function Home() {
           )}
 
           {result && (
-            <div className="text-left p-4 sm:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4 text-slate-900 dark:text-slate-100 break-words">
+            <div className="text-left p-4 sm:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4 text-slate-900 dark:text-slate-100 break-words [overflow-wrap:anywhere]">
               {result.reply && (
                 <div>
                   <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 mb-1">Lima</h3>
@@ -440,7 +466,7 @@ export default function Home() {
                   )}
                   <button
                     onClick={listen}
-                    className="mt-3 inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors"
+                    className="mt-3 inline-flex items-center gap-2 text-sm font-semibold min-h-11 px-4 py-2 rounded-full border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M11 5L6 9H3v6h3l5 4V5z" fill="currentColor" />
@@ -471,7 +497,7 @@ export default function Home() {
 
               {result.transcript && (
                 <details className="text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-700">
-                  <summary className="cursor-pointer font-semibold hover:text-slate-800 dark:hover:text-slate-200">
+                  <summary className="cursor-pointer py-2 font-semibold hover:text-slate-800 dark:hover:text-slate-200">
                     View raw transcript
                   </summary>
                   <p className="mt-2 italic bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 p-3 rounded-lg border border-slate-200 dark:border-slate-700">{result.transcript}</p>
@@ -483,8 +509,8 @@ export default function Home() {
       </div>
 
       {showInstructions && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4" onClick={() => setShowInstructions(false)}>
-          <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl p-5 sm:p-6 max-w-md w-full max-h-[90dvh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4" onClick={() => setShowInstructions(false)}>
+          <div role="dialog" aria-modal="true" aria-label="How to use Lima" className="sheet-up bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-t-3xl sm:rounded-2xl p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] max-w-md w-full max-h-[90dvh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-bold mb-3">How to use Lima</h3>
             <ul className="list-disc list-inside text-sm text-slate-700 dark:text-slate-300 space-y-2.5 mb-6 leading-relaxed">
               <li>Tap the microphone button to start recording your voice note.</li>
@@ -493,7 +519,7 @@ export default function Home() {
             </ul>
             <button
               onClick={() => setShowInstructions(false)}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-md"
+              className="w-full min-h-12 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-md"
             >
               Got it
             </button>
