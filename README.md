@@ -1,6 +1,6 @@
 # Lima
 
-Lima is an AI voice note assistant. It records audio in the browser, transcribes it with Whisper, and turns the raw speech into a clear summary and a list of action items using Llama 3.
+Lima is an AI voice note assistant. It records audio in the browser, transcribes it with Whisper, and uses Llama 3 to turn the raw speech into a clear summary and a list of action items.
 
 **Live app: [valentinakiyungi.github.io/Lima](https://valentinakiyungi.github.io/Lima/)**
 
@@ -30,7 +30,7 @@ Lima is an AI voice note assistant. It records audio in the browser, transcribes
 | Frontend | Next.js (static export), TypeScript, Tailwind CSS | GitHub Pages: https://valentinakiyungi.github.io/Lima/ |
 | Backend | FastAPI (`main.py`), Groq SDK | Render: https://lima-bc.onrender.com |
 
-The frontend records audio and sends it to the backend's `/chat/voice` endpoint. The backend transcribes it and returns a transcript, a summary and action items.
+The frontend records audio and sends it to the backend's `/chat/voice` endpoint. The backend transcribes it and returns a transcript, a summary, and action items.
 
 > The free Render backend sleeps when idle, so the first request after a while can take about 30 seconds.
 
@@ -55,15 +55,15 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ```bash
 pip install -r requirements.txt
 export GROQ_API_KEY=your_groq_api_key_here
-uvicorn main:app --reload      # http://localhost:8000
+uvicorn main: app --reload      # http://localhost:8000
 ```
 
 ## Deployment
 
 - **Frontend (GitHub Pages):** `.github/workflows/pages.yml` builds the Next.js app with `NEXT_PUBLIC_BASE_PATH=/Lima` and publishes the `out/` folder on every push to `main`. In the repository settings, Pages > Source must be set to **GitHub Actions**.
-- **Backend (Render):** deployed as a Python web service (`uvicorn main:app --host 0.0.0.0 --port $PORT`). `GROQ_API_KEY` is set in the Render dashboard.
+- **Backend (Render):** deployed as a Python web service (`uvicorn main: app --host 0.0.0.0 --port $PORT`). `GROQ_API_KEY` is set in the Render dashboard.
 
-The base path is empty by default, so the same code also runs when served from the root of a domain (for example on Render).
+The base path is empty by default, so the same code also runs when served from the root of a domain, as on Render.
 
 ## License
 
